@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text } from "react-native";
 import * as Location from "expo-location";
 
-export default function LocationCoords(){
+export default function LocationCoords({locationValues}){
     const [coords, setCoords] = React.useState(null);
 
     useEffect(()=>{
@@ -15,6 +15,7 @@ export default function LocationCoords(){
 
         let location = Location.getCurrentPositionAsync();
         setCoords((await location).coords);
+        locationValues((await location).coords);
     };
 
     getLocation();

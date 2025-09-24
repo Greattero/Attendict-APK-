@@ -4,6 +4,7 @@ import HostForm from "./HostForm.jsx";
 import CheckinForm from "./CheckinForm.jsx";
 import Countdown from "./Countdown.jsx";
 import LocationCoords from "./LocationCoords.jsx";
+import IPChecker from "./IPChecker.jsx";
 import Header from "./Header.jsx";
 import React from "react";
 
@@ -12,12 +13,17 @@ export default function App() {
   const [showHostForm, setShowHostForm] = React.useState(false);
   const [showCheckinForm, setShowCheckinForm] = React.useState(false);
   const [duration, setDuration] = React.useState();
+  const [location,setLocation] = React.useState();
+  const [ip,setIp] = React.useState("");
 
 
   return (
     <View style={styles.container}>
      {<Header/>}
-     <LocationCoords/>
+     <LocationCoords
+     locationValues={setLocation}
+     />
+     <IPChecker onIP={setIp}/>
       <TouchableOpacity
         style={styles.button1}
         onPress={() => setShowHostForm(true)}
@@ -33,6 +39,8 @@ export default function App() {
         visible={showHostForm}
         onClose={()=>setShowHostForm(false)}
         setDuration={setDuration}
+        hostCoords={location}
+        myip={ip}
         />
 
       <TouchableOpacity

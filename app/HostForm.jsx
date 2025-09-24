@@ -2,30 +2,85 @@ import React from "react";
 import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 
-export default function HostForm({visible, onClose, setDuration}) {
+export default function HostForm({visible, onClose, setDuration,hostCoords,myip}) {
     const [loading, setLoading] = React.useState(false);
     const [startClock, setStartClock] = React.useState(false);
 
-    const [name, setName] = React.useState("");
-    const [index, setIndex] = React.useState("");
-    const [programme, setProgramme] = React.useState("");
-    const [level, setLevel] = React.useState("");
+    const [formData, setFormData] = React.useState({
+        name:"",
+        index_no:"",
+        programme:"",
+        level:"",
+        myip:"",
+        location:{
+            lat:null,
+            lon:null,
+        }        
+    })
 
-    const handleName = () => {
-        setName(name)
+    const handleName = (name) => {
+        setFormData((prev)=>({...prev,name}))
     };
-    const handleIndex = () => {
-        setIndex(index)
+    const handleIndex = (index_no) => {
+        setFormData((prev)=>({...prev,index_no}))
     };
-    const handleProgramme = () => {
-        setProgramme(programme)
+    const handleProgramme = (programme) => {
+        setFormData((prev)=>({...prev,programme}))
     };
-    const handleLevel = () => {
-        setLevel(level)
+    const handleLevel = (level) => {
+        setFormData((prev)=>({...prev,level}))
     };
-    const handleDuration = (duration) => {
-        setDuration(duration)
-    };
+
+    React.useEffect(()=>{
+        if(hostCoords){
+        setFormData((prev)=>({...prev,
+            location:{
+                lat:hostCoords.latitude,
+                lon:hostCoords.longitude,
+            }
+        }))}
+    },[hostCoords]);
+
+    React.useEffect(()=>{
+        if(myip){
+            setFormData((prev)=>({...prev, myip }))
+        }
+    },[myip])
+
+    const handleSubmit = async () => {
+
+        if (!formData.name || !formData.programme || !formData.level || !formData.duration) {
+            alert("Please fill all required fields.");
+            return;
+        }
+
+        if(formData.location.lat === null || formData.location.lon === null){
+        alert("Location not found 😬. Check if location is on and try again.");
+        return;
+        }
+
+        setLoading(true); // Start loading
+
+        
+        try{
+        const response = await fetch("",{
+            method: "POST",
+            headers:{
+                "Content-Type":"application/json",
+            },
+            body: JSON.stringify({formData})
+        })
+
+        const data = await response.json();
+        alert("Submitted Successfully");    
+
+        }
+
+        catch(error){
+            alert("Failed to submit. Try again");
+
+        }
+    }
 
     return(
         <Modal visible={visible} transparent animationType="fade">
@@ -37,7 +92,7 @@ export default function HostForm({visible, onClose, setDuration}) {
                         <Text>Fullname</Text>
                         <TextInput 
                             placeholder="Ex. Jessica Mahunu"
-                            value={name}
+                            value={formData.name}
                             onChangeText={handleName}
                             style={styles.input}
                         />
@@ -45,12 +100,14 @@ export default function HostForm({visible, onClose, setDuration}) {
                         <Text>Index Number</Text>
                         <TextInput
                         style={styles.input}
+                        value={formData.index_no}
+                        onChangeText={handleIndex}
                         />
 
                         <Text>Programme Initials & Course Code</Text>
                         <TextInput
                             placeholder="Ex. CE123"
-                            value = {programme}
+                            value = {formData.programme}
                             onChangeText={handleProgramme}
                             style={styles.input}
                         />
@@ -65,6 +122,7 @@ export default function HostForm({visible, onClose, setDuration}) {
                         ]}
                         
                         placeholder={{label: "Select Level", value: null}}
+                        value={formData.level}
                         />
 
                         <RNPickerSelect
@@ -80,20 +138,19 @@ export default function HostForm({visible, onClose, setDuration}) {
 
                         <TouchableOpacity 
                         style={styles.submitButton}  
-                        onPress={()=>setLoading(true)}
+                        onPress={()=>handleSubmit()}
 
                         >
                             {
                                 loading ? (
                                 <View>
                                     <ActivityIndicator color="white"  size={28}/>  
-                                    
                                 </View>
                                 ):
                                 (<Text style={styles.submitText}>Submit</Text>)
                             }
                         </TouchableOpacity>
-
+                    
                     </View>
                 </View>
             </TouchableWithoutFeedback>
