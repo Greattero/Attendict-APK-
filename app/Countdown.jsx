@@ -1,12 +1,15 @@
 import React, { useEffect } from "react";
 import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View, TouchableWithoutFeedback } from "react-native";
 
-export default function Countdown({ start }){
+export default function Countdown({ start,enableStopClock }){
 
     const [seconds, setSeconds] = React.useState(start*60);
 
     useEffect(() => {
-        if (seconds == 0) return;
+        if (seconds == 0) {
+            enableStopClock(false);
+            return;
+        }
 
         const timer = setInterval(()=> {
             setSeconds((prev) => prev - 1)

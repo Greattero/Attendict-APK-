@@ -1,26 +1,134 @@
-import React from "react"
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ActivityIndicator, TouchableWithoutFeedback } from "react-native";
+import React from "react";
+import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 
-export default function CheckinForm({visible,onClose}){
+export default function CheckinForm({visible,onClose,getProg,location,myip,distance}){
     const [loading, setLoading] = React.useState(false);    
 
-    const [name, setName] = React.useState("");
-    const [index, setIndex] = React.useState("");
-    const [programme, setProgramme] = React.useState("");
-    const [level, setLevel] = React.useState("");
+    const [formData, setFormData] = React.useState({
+        name:"",
+        index_no:"",
+        programme:"",
+        level:"",
+        myip:myip,
+        location:{
+            lat: location?.latitude || null,
+            lon: location?.longitude || null,
+        }
 
-    const handleName = () => {
-        setName(name);
-    }
-    const handleIndex = () => {
-        setIndex(index);
-    }
-    const handleProgramme = () => {
-        setProgramme(programme);
-    }
-    const handleLevel = () => {
-        setLevel(level);
+    });
+
+
+    const handleName = (name) => {
+        setFormData((prev)=>({...prev,name}))
+    };
+    const handleIndex = (index_no) => {
+        // const val = index_no.toUpperCase();
+        setFormData((prev)=>({...prev,index_no:index_no.toUpperCase()}));
+    };
+    const handleProgramme = (programme) => {
+        setFormData((prev)=>({...prev,programme:programme.toUpperCase()}));
+        getProg(programme);
+    };
+    const handleLevel = (level) => {
+        setFormData((prev)=>({...prev,level}))
+    };
+
+    const range = 0.32;
+    React.useEffect(()=>{
+        if(location){
+        setFormData((prev)=>({...prev,
+            location:{
+                lat:location.latitude,
+                lon:location.longitude,
+            }
+        }))}
+    },[location]);
+
+    React.useEffect(()=>{
+        if(myip){
+            setFormData((prev)=>({...prev, myip }))
+        }
+    },[myip])
+
+
+    const handleSubmit = async () =>{
+
+        // Validate form fields
+        if (!formData.name || !formData.programme || !formData.level) {
+            alert("Please fill all required fields.");
+            return;
+        }
+
+        if(formData.programme.length !== 5){
+            alert("Invalid programme code");
+            return;
+        }
+
+        setLoading(true); // Start loading
+
+
+        if (distance === null && !hostCoords.lat) {
+            alert("Host location not found 😬. Check course code or turn on location. Then refresh and try again.");
+            setLoading(false); // Stop loading
+            return;
+        }
+        else if( distance > range){
+            alert(`You are out of range 😭.Refresh and try again`);
+            setLoading(false); // Stop loading
+            return;
+        }
+
+        try{
+            const response = await fetch("https://attendict-apk.onrender.com/api/checkin-details",{
+                method:"POST",
+                headers:{
+                    "Content-Type" : "application/json",
+                },
+                body:JSON.stringify(formData)
+            })
+
+            const data = await response.json();
+
+
+            if (data.dbAvailable === false) {
+            alert("Session doesn't exist");
+            setLoading(false);
+            onClose();
+            return;
+            }
+
+            if (!data.success === false){
+                alert("Invalid Index Number");
+                setLoading(false);
+                return;
+            }
+
+
+            if(data.alreadyCheckedIn){
+            alert("You've already checkedin");
+            setLoading(false); // Stop loading
+            onClose();
+            return;
+            }
+
+
+
+            console.log("Check-in successful:", data);
+            alert(`Submitted Successfully🎉\nYou are ${distance.toFixed(3)}km away`);
+            console.log(distance);
+            setLoading(false); // Stop loading
+            onClose(); // close the form so the countdown shows
+            
+
+        }
+        catch(error){
+            alert("No internet connection. Try again");
+            console.log(error);
+            onClose();
+        }
+
+
     }
 
     return(
@@ -34,7 +142,7 @@ export default function CheckinForm({visible,onClose}){
                         <Text>Full name</Text>
                         <TextInput
                         placeholder="Ex. Foster Ametepey"
-                        value={name}
+                        value={formData.name}
                         onChangeText={handleName}
                         style={styles.input}
                         />
@@ -42,12 +150,14 @@ export default function CheckinForm({visible,onClose}){
                         <Text>Index Number</Text>
                         <TextInput 
                         style={styles.input}
+                        value={formData.index_no.toUpperCase()}
+                        onChangeText={handleIndex}
                         />
 
                         <Text>Programme & Course Initials</Text>
                         <TextInput
                         placeholder="CE123"
-                        value={programme}
+                        value={formData.programme}
                         onChangeText={handleProgramme}
                         style={styles.input}
                         />
@@ -62,11 +172,12 @@ export default function CheckinForm({visible,onClose}){
                         ]}
 
                         placeholder={{label:"Select level", value:null}}
+                        value = {formData.level}
                         />
 
                         <TouchableOpacity 
                         style={styles.submitButton}  
-                        onPress={()=>setLoading(true)}
+                        onPress={()=>handleSubmit()}
 
                         >
                             {

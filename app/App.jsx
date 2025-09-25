@@ -6,6 +6,8 @@ import Countdown from "./Countdown.jsx";
 import LocationCoords from "./LocationCoords.jsx";
 import IPChecker from "./IPChecker.jsx";
 import Header from "./Header.jsx";
+import FetchHostCoords from "./FetchHostCoords.jsx";
+import Distance from "./Distance.jsx"
 import React from "react";
 
 export default function App() {
@@ -13,17 +15,39 @@ export default function App() {
   const [showHostForm, setShowHostForm] = React.useState(false);
   const [showCheckinForm, setShowCheckinForm] = React.useState(false);
   const [duration, setDuration] = React.useState();
-  const [location,setLocation] = React.useState();
+  const [location,setLocation] = React.useState({});
   const [ip,setIp] = React.useState("");
+  const [pollHostCoords,setPollHostCoords] = React.useState({});
+  const [calDistance,setCalDistance] = React.useState();
+  const [checkinProg, setCheckinProg] = React.useState();
+  const [startClock, setStartClock] = React.useState(false);
+  const [stopClock, setStopClock] = React.useState(false);
+
 
 
   return (
     <View style={styles.container}>
      {<Header/>}
+
      <LocationCoords
      locationValues={setLocation}
      />
+
      <IPChecker onIP={setIp}/>
+
+    <FetchHostCoords
+    setHostCoords={setPollHostCoords}
+    checkinProgValue={checkinProg}
+    />
+
+    <Distance
+    hostLat={pollHostCoords.lat}
+    hostLon={pollHostCoords.lon}
+    checkinLat={location.latitude}
+    checkinLon={location.longitude}
+    setDistance={setCalDistance}
+    />
+
       <TouchableOpacity
         style={styles.button1}
         onPress={() => setShowHostForm(true)}
@@ -38,9 +62,10 @@ export default function App() {
         <HostForm 
         visible={showHostForm}
         onClose={()=>setShowHostForm(false)}
-        setDuration={setDuration}
-        hostCoords={location}
+        exportDuration={setDuration}
+        location={location}
         myip={ip}
+        proceedTimer={setStartClock}
         />
 
       <TouchableOpacity
@@ -57,10 +82,16 @@ export default function App() {
       <CheckinForm
       visible={showCheckinForm}
       onClose={()=>setShowCheckinForm(false)}
+      CheckinCoords={location}
+      myip={ip}
+      location={location}
+      distance={calDistance}
+      getProg={setCheckinProg}
       />
 
      <Text style={styles.timer} > 
-      {duration && <Countdown start={duration}/>} 
+      {startClock ? duration && <Countdown start={duration} enableStopClock={setStartClock}/> : null}
+  
       </Text>
 
     </View>

@@ -2,19 +2,19 @@ import React from "react";
 import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 
-export default function HostForm({visible, onClose, setDuration,hostCoords,myip}) {
+export default function HostForm({visible, onClose, exportDuration,location,myip, proceedTimer}) {
     const [loading, setLoading] = React.useState(false);
-    const [startClock, setStartClock] = React.useState(false);
 
     const [formData, setFormData] = React.useState({
         name:"",
         index_no:"",
         programme:"",
         level:"",
-        myip:"",
+        duration:null,
+        myip:myip,
         location:{
-            lat:null,
-            lon:null,
+            lat: location?.latitude || null,
+            lon: location?.longitude || null,
         }        
     })
 
@@ -22,24 +22,29 @@ export default function HostForm({visible, onClose, setDuration,hostCoords,myip}
         setFormData((prev)=>({...prev,name}))
     };
     const handleIndex = (index_no) => {
-        setFormData((prev)=>({...prev,index_no}))
+        // const val = index_no.toUpperCase();
+        setFormData((prev)=>({...prev,index_no:index_no.toUpperCase()}));
     };
     const handleProgramme = (programme) => {
-        setFormData((prev)=>({...prev,programme}))
+        setFormData((prev)=>({...prev,programme:programme.toUpperCase()}));
     };
     const handleLevel = (level) => {
         setFormData((prev)=>({...prev,level}))
     };
+    const handleDuration = (duration)=>{
+        setFormData((prev)=>({...prev,duration}));
+        exportDuration(duration)
+    }
 
     React.useEffect(()=>{
-        if(hostCoords){
+        if(location){
         setFormData((prev)=>({...prev,
             location:{
-                lat:hostCoords.latitude,
-                lon:hostCoords.longitude,
+                lat:location.latitude,
+                lon:location.longitude,
             }
         }))}
-    },[hostCoords]);
+    },[location]);
 
     React.useEffect(()=>{
         if(myip){
@@ -54,6 +59,11 @@ export default function HostForm({visible, onClose, setDuration,hostCoords,myip}
             return;
         }
 
+        if(formData.programme.length !== 5){
+            alert("Invalid programme code");
+            return
+        }
+
         if(formData.location.lat === null || formData.location.lon === null){
         alert("Location not found 😬. Check if location is on and try again.");
         return;
@@ -61,24 +71,49 @@ export default function HostForm({visible, onClose, setDuration,hostCoords,myip}
 
         setLoading(true); // Start loading
 
+        console.log("Sending data:", formData);
+
         
         try{
-        const response = await fetch("",{
-            method: "POST",
-            headers:{
-                "Content-Type":"application/json",
-            },
-            body: JSON.stringify({formData})
-        })
+            const response = await fetch("https://attendict-apk.onrender.com/api/host-details",{
+                method: "POST",
+                headers:{
+                    "Content-Type":"application/json",
+                },
+                body: JSON.stringify(formData)
+            })
 
-        const data = await response.json();
-        alert("Submitted Successfully");    
+            const data = await response.json();
+            console.log(`okacccyyyyy: ${data.success}`);
+            
+            if (data.success===false){
+                alert("Invalid Index Number");
+                setLoading(false);
+                return;
+            }
+
+            if (data.dbAvailable) {
+                alert("Session already exists.");
+                setLoading(false);
+                console.log(`Was it: ${data.dbAvailable}`);
+                onClose();
+                return;
+            }
+
+
+            console.log("Successfully submitted:", data);
+            proceedTimer(true);
+            alert("Submitted Successfully🎉");
+            setLoading(false); // Stop loading
+            onClose();
 
         }
 
         catch(error){
-            alert("Failed to submit. Try again");
-
+            console.error("Fetch error:", error);
+            alert("Unstable connection. Try Again");
+            setLoading(false);
+            onClose();
         }
     }
 
@@ -126,13 +161,14 @@ export default function HostForm({visible, onClose, setDuration,hostCoords,myip}
                         />
 
                         <RNPickerSelect
-                        onValueChange={(value)=>setDuration(value)}
+                        onValueChange={handleDuration}
                         style={styles.input}
                         items={[
                             {label:"5 mins", value: 5},
                             {label:"10 mins", value: 10}
                         ]}
                         placeholder={{label: "Select duration", value:null}}
+                        value={formData.duration}
 
                         />
 
