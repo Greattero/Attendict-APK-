@@ -65,6 +65,7 @@ app.post("/api/host-details", async (req, res) => {
         }
 
         const usernameChecker = index_no.replace(/[.\s]/g,"");
+        console.log(usernameChecker);
         const schoolCode = usernameChecker.substring(0,5);
         const departmentalCode = usernameChecker.substring(5,8);
         const schoolYear = usernameChecker.slice(-2);
@@ -223,6 +224,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
