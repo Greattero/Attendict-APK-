@@ -1,8 +1,7 @@
-import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { ObjectId } from 'mongodb';
+import express from 'express';
+import mongoose from 'mongoose';
 
 const app = express();
 dotenv.config();
@@ -65,7 +64,7 @@ app.post("/api/host-details", async (req, res) => {
         return res.json({ dbAvailable: true });
         }
 
-        const usernameChecker = programme.replace(/[.\s]/g,"");
+        const usernameChecker = index_no.replace(/[.\s]/g,"");
         const schoolCode = usernameChecker.substring(0,5);
         const departmentalCode = usernameChecker.substring(5,8);
         const schoolYear = usernameChecker.slice(-2);
@@ -109,7 +108,7 @@ app.post("/api/checkin-details", async (req, res) => {
     }
 
 
-    const usernameChecker = programme.replace(/[.\s]/g,"");
+    const usernameChecker = index_no.replace(/[.\s]/g,"");
     const schoolCode = usernameChecker.substring(0,5);
     const departmentalCode = usernameChecker.substring(5,8);
     const schoolYear = usernameChecker.slice(-2);
