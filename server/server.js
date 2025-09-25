@@ -56,37 +56,28 @@ const studentSchema = new mongoose.Schema({
 
 app.post("/api/host-details", async (req, res) => {
     try {
-        const { name, index_no, programme, level, myip, location } = req.body;
-
+        const {name, index_no, programme, level, myip, location} = req.body;
+    
         // Check if collection exists first
         const collections = await mongoose.connection.db.listCollections({ name: programme }).toArray();
         if (collections.length > 0) {
-            return res.json({
-                success: true,
-                dbAvailable: true,
-                error: null,
-                student: null
-            });
+        return res.json({ dbAvailable: true });
         }
 
-        const usernameChecker = index_no.replace(/[.\s]/g, "");
-        const schoolCode = usernameChecker.substring(0, 5);
-        const departmentalCode = usernameChecker.substring(5, 8);
+        const usernameChecker = index_no.replace(/[.\s]/g,"");
+        const schoolCode = usernameChecker.substring(0,5);
+        const departmentalCode = usernameChecker.substring(5,8);
         const schoolYear = usernameChecker.slice(-2);
         const departmentalCodesArray = ["002","003","005","007","006","008","010","024","028"];
 
-        if (schoolCode !== "SRI41" || !departmentalCodesArray.includes(departmentalCode) || usernameChecker.length !== 13) {
-            return res.json({
-                success: false,
-                dbAvailable: false,
-                error: "Invalid index number",
-                student: null
-            });
+        if(schoolCode !== "SRI41" || !departmentalCodesArray.includes(departmentalCode) || usernameChecker.length !== 13){
+            console.log("nooooooooooooooooooo");
+            return res.json({success: false});
         }
 
-        // Create dynamic model
+        // Create dynamic model if needed
         const Student = mongoose.model("Programme", studentSchema, `${programme}`);
-
+        
         // Save the data
         const newStudent = await Student.create({
             name,
@@ -96,26 +87,14 @@ app.post("/api/host-details", async (req, res) => {
             myip,
             location,
             doubtChecker: "0",
-            checkedTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          checkedTime: new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}),
         });
-
-        return res.status(201).json({
-            success: true,
-            dbAvailable: false,
-            error: null,
-            student: newStudent
-        });
+        res.status(201).json(newStudent);
 
     } catch (err) {
-        return res.status(400).json({
-            success: false,
-            dbAvailable: false,
-            error: err.message,
-            student: null
-        });
+        res.status(400).json({ error: err.message });
     }
 });
-
 
 
 app.post("/api/checkin-details", async (req, res) => {
@@ -244,7 +223,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
-
 
 
 
