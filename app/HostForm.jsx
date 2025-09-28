@@ -2,7 +2,7 @@ import React from "react";
 import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 
-export default function HostForm({visible, onClose, exportDuration,location,myip, proceedTimer}) {
+export default function HostForm({visible, onClose, exportDuration,location,myip, proceedTimer,getProg}) {
     const [loading, setLoading] = React.useState(false);
 
     const [formData, setFormData] = React.useState({
@@ -27,6 +27,7 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
     };
     const handleProgramme = (programme) => {
         setFormData((prev)=>({...prev,programme:programme.toUpperCase()}));
+        getProg(programme);
     };
     const handleLevel = (level) => {
         setFormData((prev)=>({...prev,level}))

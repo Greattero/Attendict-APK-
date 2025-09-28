@@ -4,6 +4,10 @@ export default function Distance({ checkinLat, checkinLon, hostLat, hostLon, set
 
     React.useEffect(() => {
         if (checkinLat != null && checkinLon != null && hostLat != null && hostLon != null) {
+            console.log(checkinLat);
+            console.log(checkinLon);
+            console.log(hostLat);
+            console.log(hostLon)
             const R = 6371; // Earth radius in km
             const toRad = angle => angle * (Math.PI / 180);
 
@@ -19,6 +23,7 @@ export default function Distance({ checkinLat, checkinLon, hostLat, hostLon, set
 
             const distance = R * c;
             setDistance(distance);
+            console.log(`distance: ${distance}`)
         }
     }, [checkinLat, checkinLon, hostLat, hostLon, setDistance]);
 

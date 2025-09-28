@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 export default function FetchHostCoords({setHostCoords,checkinProgValue}){
-    
+    console.log("fetching works")
       useEffect(() => {
         // Clear any previously valid coordinates when programme changes
         setHostCoords({ lat: null, lon: null });

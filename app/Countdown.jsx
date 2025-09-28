@@ -1,13 +1,14 @@
 import React, { useEffect } from "react";
 import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View, TouchableWithoutFeedback } from "react-native";
 
-export default function Countdown({ start,enableStopClock }){
+export default function Countdown({ start,enableStopClock,sendCollectSignal }){
 
     const [seconds, setSeconds] = React.useState(start*60);
 
     useEffect(() => {
         if (seconds == 0) {
             enableStopClock(false);
+            sendCollectSignal(true);
             return;
         }
 

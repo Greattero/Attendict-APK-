@@ -8,6 +8,7 @@ import IPChecker from "./IPChecker.jsx";
 import Header from "./Header.jsx";
 import FetchHostCoords from "./FetchHostCoords.jsx";
 import Distance from "./Distance.jsx"
+import CollectNames from "./CollectNames.jsx";
 import React from "react";
 
 export default function App() {
@@ -20,14 +21,25 @@ export default function App() {
   const [pollHostCoords,setPollHostCoords] = React.useState({});
   const [calDistance,setCalDistance] = React.useState();
   const [checkinProg, setCheckinProg] = React.useState();
+  const [hostProg, setHostProg] = React.useState();
   const [startClock, setStartClock] = React.useState(false);
-  const [stopClock, setStopClock] = React.useState(false);
+  const [collect, setCollect] = React.useState(false);
 
 
 
   return (
     <View style={styles.container}>
      {<Header/>}
+
+    {startClock ? 
+     <CollectNames
+     timeUp = {false}
+     programmeName = {hostProg}
+     /> : <CollectNames
+     timeUp={collect}
+     programmeName = {hostProg}
+
+     />}
 
      <LocationCoords
      locationValues={setLocation}
@@ -66,6 +78,7 @@ export default function App() {
         location={location}
         myip={ip}
         proceedTimer={setStartClock}
+        getProg={setHostProg}
         />
 
       <TouchableOpacity
@@ -82,7 +95,6 @@ export default function App() {
       <CheckinForm
       visible={showCheckinForm}
       onClose={()=>setShowCheckinForm(false)}
-      CheckinCoords={location}
       myip={ip}
       location={location}
       distance={calDistance}
@@ -90,7 +102,7 @@ export default function App() {
       />
 
      <Text style={styles.timer} > 
-      {startClock ? duration && <Countdown start={duration} enableStopClock={setStartClock}/> : null}
+      {startClock ? duration && <Countdown start={duration} enableStopClock={setStartClock} sendCollectSignal={setCollect}/> : null}
   
       </Text>
 

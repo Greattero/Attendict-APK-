@@ -34,7 +34,7 @@ export default function CheckinForm({visible,onClose,getProg,location,myip,dista
         setFormData((prev)=>({...prev,level}))
     };
 
-    const range = 0.32;
+    const range = 0.026;
     React.useEffect(()=>{
         if(location){
         setFormData((prev)=>({...prev,
@@ -68,7 +68,7 @@ export default function CheckinForm({visible,onClose,getProg,location,myip,dista
         setLoading(true); // Start loading
 
 
-        if (distance === null && !hostCoords.lat) {
+        if (distance === null) {
             alert("Host location not found 😬. Check course code or turn on location. Then refresh and try again.");
             setLoading(false); // Stop loading
             return;
@@ -125,6 +125,7 @@ export default function CheckinForm({visible,onClose,getProg,location,myip,dista
         catch(error){
             alert("No internet connection. Try again");
             console.log(error);
+            setLoading(false)
             onClose();
         }
 
