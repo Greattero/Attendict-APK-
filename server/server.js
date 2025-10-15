@@ -64,6 +64,8 @@ app.post("/api/host-details", async (req, res) => {
         return res.json({ dbAvailable: true });
         }
 
+        if(index_no !== "") {
+
         const usernameChecker = index_no.replace(/[.\s]/g,"");
         const schoolCode = usernameChecker.substring(0,5);
         const departmentalCode = usernameChecker.substring(5,8);
@@ -73,6 +75,7 @@ app.post("/api/host-details", async (req, res) => {
         if(schoolCode !== "SRI41" || !departmentalCodesArray.includes(departmentalCode) || usernameChecker.length !== 13){
             console.log("nooooooooooooooooooo");
             return res.json({success: false});
+        }
         }
 
         // Create dynamic model if needed
@@ -223,6 +226,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
