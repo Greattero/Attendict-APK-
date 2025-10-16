@@ -200,6 +200,7 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                         <Text>Fullname</Text>
                         <TextInput 
                             placeholder="Ex. Jessica Mahunu"
+                            placeholderTextColor = "#888"
                             value={formData.name}
                             onChangeText={handleName}
                             style={styles.input}
@@ -208,6 +209,8 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                         <Text>Index Number</Text>
                         <TextInput
                         style={styles.input}
+                        placeholder="SRI.41.XXX.XXX.XX"
+                        placeholderTextColor = "#888"
                         value={formData.index_no}
                         onChangeText={handleIndex}
                         />
@@ -215,6 +218,7 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                         <Text>Programme Initials & Course Code</Text>
                         <TextInput
                             placeholder="Ex. CE123"
+                            placeholderTextColor = "#888"
                             value = {formData.programme}
                             onChangeText={handleProgramme}
                             style={styles.input}
@@ -222,6 +226,7 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                         
                         <RNPickerSelect
                         onValueChange={handleLevel}
+                        style={styles.input}
                         items={[
                             {label: "Level 100", value: "Level 100"},
                             {label: "Level 200", value: "Level 200"},
@@ -275,6 +280,7 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                         <Text>Programme Initials & Course Code</Text>
                         <TextInput
                             placeholder="Ex. CE123"
+                            placeholderTextColor = "#888"
                             value = {formData.programme}
                             onChangeText={handleProgramme}
                             style={styles.input}
@@ -352,6 +358,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 5,
     borderColor: "rgba(132, 212, 156, 0.6)",
+    color: "black",
   },
   submitButton: {
     alignItems: "center",

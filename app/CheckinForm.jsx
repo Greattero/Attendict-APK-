@@ -143,6 +143,7 @@ export default function CheckinForm({visible,onClose,getProg,location,myip,dista
                         <Text>Full name</Text>
                         <TextInput
                         placeholder="Ex. Foster Ametepey"
+                        placeholderTextColor = "#888"
                         value={formData.name}
                         onChangeText={handleName}
                         style={styles.input}
@@ -150,6 +151,8 @@ export default function CheckinForm({visible,onClose,getProg,location,myip,dista
 
                         <Text>Index Number</Text>
                         <TextInput 
+                        placeholder="SRI.41.XXX.XXX.XX"
+                        placeholderTextColor = "#888"
                         style={styles.input}
                         value={formData.index_no.toUpperCase()}
                         onChangeText={handleIndex}
@@ -158,6 +161,7 @@ export default function CheckinForm({visible,onClose,getProg,location,myip,dista
                         <Text>Programme & Course Initials</Text>
                         <TextInput
                         placeholder="CE123"
+                        placeholderTextColor = "#888"
                         value={formData.programme}
                         onChangeText={handleProgramme}
                         style={styles.input}
@@ -165,6 +169,7 @@ export default function CheckinForm({visible,onClose,getProg,location,myip,dista
 
                         <RNPickerSelect
                         onValueChange={handleLevel}
+                        style={styles.input}
                         items={[
                             {label:"Level 100", value:"Level 100"},
                             {label:"Level 200", value:"Level 200"},
@@ -230,7 +235,8 @@ const styles = StyleSheet.create({
     input:{
         borderWidth:2,
         borderRadius:5,
-        borderColor: "rgba(132, 212, 156, 0.6)"
+        borderColor: "rgba(132, 212, 156, 0.6)",
+        color: "black",
     },
     submitButton:{
         alignItems: "center",
