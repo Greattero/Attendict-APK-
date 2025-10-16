@@ -3,7 +3,7 @@ import * as Sharing from "expo-sharing";
 import Papa from "papaparse";
 import { useEffect, useState } from "react";
 
-export default function CollectNames({ timeUp, programmeName }) {
+export default function CollectNames({ timeUp, defaultTimeUp, programmeName }) {
   const [students, setStudents] = useState([]);
   console.log("here is workingggggggggggg");
 
@@ -19,6 +19,25 @@ export default function CollectNames({ timeUp, programmeName }) {
     }
   };
 
+  const deleteCollection = async () => {
+    try{
+      const response = await fetch("https://attendict-apk.onrender.com/api/delete-collection",
+        {
+          method:"DELETE",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({collection_name:programmeName})
+        }
+      )
+
+    }
+
+    catch(error){
+
+      console.log("Couldn't delete");
+    }
+
+  }
+
   useEffect(() => {
     let fetchNamesInterval;
     console.log("here is tooooooooooooooooooo");
@@ -28,6 +47,9 @@ export default function CollectNames({ timeUp, programmeName }) {
         console.log("yeahhhhhhhhhhhhhhhhhhhhhhh")
       getAllNames().then(async () => {
         if (!students || students.length === 0) {
+          deleteCollection();
+          setStudents([]);
+          defaultTimeUp(false);
           alert("Document couldn't be saved. Check internet connection and try again");
           return;
         }
@@ -40,13 +62,16 @@ export default function CollectNames({ timeUp, programmeName }) {
         students.sort((a, b) => a.name.localeCompare(b.name));
 
         // Prepare data for CSV
-        const csvData = students.map((student, index) => [
-          index + 1,
-          student.name,
-          student.index_no,
-          student.checkedTime || "",
-          student.doubtChecker === "1" ? "Check if in class" : "Present"
-        ]);
+        const csvData = students
+          .filter(student => student.name !== "" && student.index_no !== "")
+          .map((student, index) => [
+            index + 1,
+            student.name,
+            student.index_no,
+            student.checkedTime || "",
+            student.doubtChecker === "1" ? "Check if in class" : "Present"
+          ]);
+
 
         // Generate CSV string
         const csv = Papa.unparse({
@@ -57,25 +82,50 @@ export default function CollectNames({ timeUp, programmeName }) {
         try {
           // ✅ Save CSV file in app’s document directory
           const safeDate = date.toISOString().split("T")[0];
-          const fileUri =
-            FileSystem.documentDirectory + `${programmeName}_${safeDate}.csv`;
+          const filename = `${programmeName}_${safeDate}.csv`;
 
-            await FileSystem.writeAsStringAsync(fileUri, csv, {
-            encoding: "utf8",
-            });
+          // First, write to a temporary cache file
+          const tempUri = FileSystem.cacheDirectory + filename;
+          await FileSystem.writeAsStringAsync(tempUri, csv, { encoding: "utf8" });
+
+          // ✅ Request user permission to access Documents folder
+          const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+          if (!permissions.granted) {
+            alert("Permission not granted to save file.");
+            return;
+          }
+
+          // ✅ Create the file inside the chosen folder (Documents)
+          const base64 = await FileSystem.readAsStringAsync(tempUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          const newFileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+            permissions.directoryUri,
+            filename,
+            "text/csv"
+          );
+
+          await FileSystem.writeAsStringAsync(newFileUri, base64, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          deleteCollection();          
 
           alert("Document saved successfully ✅");
 
           // Optional: let user share immediately
           if (await Sharing.isAvailableAsync()) {
-            await Sharing.shareAsync(fileUri);
+            defaultTimeUp(false);
+            await Sharing.shareAsync(tempUri);
           } else {
-            console.log("Sharing not available, file saved at:", fileUri);
+            console.log("Sharing not available, file saved at:", newFileUri);
           }
 
           setStudents([]);
         } catch (err) {
           console.log("Error saving file:", err);
+          defaultTimeUp(false);
           alert("Couldn't save file 😥");
         }
       });

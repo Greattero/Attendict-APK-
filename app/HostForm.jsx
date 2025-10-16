@@ -1,9 +1,26 @@
-import React from "react";
-import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useRef, useState, useEffect } from "react";
+import { ActivityIndicator, Animated, Modal, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 
 export default function HostForm({visible, onClose, exportDuration,location,myip, proceedTimer,getProg}) {
-    const [loading, setLoading] = React.useState(false);
+    const [loading, setLoading] = useState(false);
+    const [isLecturer, setIsLecturer] = useState(true);
+    const anim = useRef(new Animated.Value(0)).current;
+
+    const toggleRole = () => {
+        setIsLecturer(!isLecturer);
+        Animated.timing(anim, {
+        toValue: isLecturer ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+        }).start();
+    };
+
+    const translateX = anim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 85], // matches button width
+    });
 
     const [formData, setFormData] = React.useState({
         name:"",
@@ -17,6 +34,7 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
             lon: location?.longitude || null,
         }        
     })
+
 
     const handleName = (name) => {
         setFormData((prev)=>({...prev,name}))
@@ -37,6 +55,32 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
         exportDuration(duration)
     }
 
+    // Check if there are some pending deletions to be made
+    React.useEffect(() => {
+    const interval = setInterval(async () => {
+        const raw = await AsyncStorage.getItem("pendingDeletes");
+        const pending = raw ? JSON.parse(raw) : [];
+        console.log("boommm")
+        if (pending.length > 0) {
+        console.log("hmmmmmmmmmm");
+        for (const name of pending) {
+            console.log("runninggggggg");
+            try {
+            await fetch("https://attendict-apk.onrender.com/api/delete-collection", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ collection_name: name }),
+            });
+            } catch {}
+        }
+        await AsyncStorage.removeItem("pendingDeletes");
+        }
+    }, 1000);
+
+    return () => clearInterval(interval);
+    }, []);
+
+
     React.useEffect(()=>{
         if(location){
         setFormData((prev)=>({...prev,
@@ -55,9 +99,17 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
 
     const handleSubmit = async () => {
 
-        if (!formData.name || !formData.programme || !formData.level || !formData.duration) {
+        if(isLecturer){
+            if (!formData.programme || !formData.duration) {
             alert("Please fill all required fields.");
             return;
+            }
+        }
+        else if(!isLecturer){
+            if (!formData.name || !formData.programme || !formData.level || !formData.duration) {
+            alert("Please fill all required fields.");
+            return;
+            }
         }
 
         if(formData.programme.length !== 5){
@@ -65,7 +117,7 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
             return
         }
 
-        if(formData.location.lat === null || formData.location.lon === null){
+        if(formData.location.lat == null || formData.location.lon == null){
         alert("Location not found 😬. Check if location is on and try again.");
         return;
         }
@@ -87,11 +139,13 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
             const data = await response.json();
             console.log(`okacccyyyyy: ${data.success}`);
             
-            if (data.success===false){
+
+            if (data.success === false) {
                 alert("Invalid Index Number");
                 setLoading(false);
                 return;
             }
+
 
             if (data.dbAvailable) {
                 alert("Session already exists.");
@@ -104,6 +158,11 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
 
             console.log("Successfully submitted:", data);
             proceedTimer(true);
+            const raw = await AsyncStorage.getItem("pendingDeletes");
+            const pending = raw ? JSON.parse(raw) : [];
+            pending.push(formData.programme); // use the current programme
+            await AsyncStorage.setItem("pendingDeletes", JSON.stringify(pending));
+            console.log("Check-in successful:", data);
             alert("Submitted Successfully🎉");
             setLoading(false); // Stop loading
             onClose();
@@ -125,6 +184,19 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                     <View style={styles.form}>
                         <Text style={styles.header}>HOST</Text>
                         <Text style={styles.subheader}>(for lecturers/course reps only)</Text>
+                        
+                        
+                        {!isLecturer ? (
+                        <>
+                        <View style={styles.toggleContainer}>
+                        <Animated.View style={[styles.slider, { transform: [{ translateX }] }]} />
+                        <TouchableOpacity style={styles.toggleSide} onPress={() => !isLecturer && toggleRole()}>
+                            <Text style={[styles.toggleText, isLecturer && styles.activeText]}>Lecturer</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.toggleSide} onPress={() => isLecturer && toggleRole()}>
+                            <Text style={[styles.toggleText, !isLecturer && styles.activeText]}>Course Rep</Text>
+                        </TouchableOpacity>
+                        </View>
                         <Text>Fullname</Text>
                         <TextInput 
                             placeholder="Ex. Jessica Mahunu"
@@ -165,8 +237,8 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                         onValueChange={handleDuration}
                         style={styles.input}
                         items={[
-                            {label:"5 mins", value: 5},
-                            {label:"10 mins", value: 10}
+                            {label:"3 mins", value: 3},
+                            {label:"5 mins", value: 5}
                         ]}
                         placeholder={{label: "Select duration", value:null}}
                         value={formData.duration}
@@ -187,6 +259,57 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
                                 (<Text style={styles.submitText}>Submit</Text>)
                             }
                         </TouchableOpacity>
+                        </>) : 
+                        (
+                            <>
+                        <View style={styles.toggleContainer}>
+                        <Animated.View style={[styles.slider, { transform: [{ translateX }] }]} />
+                        <TouchableOpacity style={styles.toggleSide} onPress={() => !isLecturer && toggleRole()}>
+                            <Text style={[styles.toggleText, isLecturer && styles.activeText]}>Lecturer</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.toggleSide} onPress={() => isLecturer && toggleRole()}>
+                            <Text style={[styles.toggleText, !isLecturer && styles.activeText]}>Course Rep</Text>
+                        </TouchableOpacity>
+                        </View>
+
+                        <Text>Programme Initials & Course Code</Text>
+                        <TextInput
+                            placeholder="Ex. CE123"
+                            value = {formData.programme}
+                            onChangeText={handleProgramme}
+                            style={styles.input}
+                        />
+                        
+
+                        <RNPickerSelect
+                        onValueChange={handleDuration}
+                        style={styles.input}
+                        items={[
+                            {label:"3 mins", value: 0.5},
+                            {label:"5 mins", value: 5}
+                        ]}
+                        placeholder={{label: "Select duration", value:null}}
+                        value={formData.duration}
+
+                        />
+
+                        <TouchableOpacity 
+                        style={styles.submitButton}  
+                        onPress={()=>handleSubmit()}
+
+                        >
+                            {
+                                loading ? (
+                                <View>
+                                    <ActivityIndicator color="white"  size={28}/>  
+                                </View>
+                                ):
+                                (<Text style={styles.submitText}>Submit</Text>)
+                            }
+                        </TouchableOpacity>
+                            
+                            </>
+                        )}
                     
                     </View>
                 </View>
@@ -197,53 +320,80 @@ export default function HostForm({visible, onClose, exportDuration,location,myip
 }
 
 const styles = StyleSheet.create({
-    hostContainer:{
-        flex: 1,
-        justifyContent:"center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.43)",
-    },
-    form:{
-        backgroundColor:"white",
-        borderRadius: 15,
-        paddingTop: 40,
-        paddingLeft: 40,
-        paddingRight: 40,
-        paddingBottom: 20,
-        width:320,
-
-    },
-    header:{
-        textAlign:"center",
-        fontSize:30,
-        color: "green",
-        fontWeight:"bold",
-        paddingBottom: 1,
-        marginTop: -35,
-    },
-    subheader:{
-        textAlign: "center",
-        color: "grey",
-        fontStyle: "italic",
-        paddingBottom: 20,
-    },
-    input:{
-        borderWidth:2,
-        borderRadius:5,
-        borderColor: "rgba(132, 212, 156, 0.6)"
-    },
-    submitButton:{
-        alignItems: "center",
-        backgroundColor: "rgba(36, 179, 79, 0.95)",
-        width: 125,
-        padding: 7,
-        marginLeft:58,
-        borderRadius:5,
-    },
-    submitText:{
-        color: "white",
-        fontSize: 20,
-        
-    }
-
-})
+  hostContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.43)",
+  },
+  form: {
+    backgroundColor: "white",
+    borderRadius: 15,
+    paddingTop: 40,
+    paddingLeft: 40,
+    paddingRight: 40,
+    paddingBottom: 20,
+    width: 320,
+  },
+  header: {
+    textAlign: "center",
+    fontSize: 30,
+    color: "green",
+    fontWeight: "bold",
+    marginTop: -35,
+  },
+  subheader: {
+    textAlign: "center",
+    color: "grey",
+    fontStyle: "italic",
+    paddingBottom: 20,
+  },
+  input: {
+    borderWidth: 2,
+    borderRadius: 5,
+    borderColor: "rgba(132, 212, 156, 0.6)",
+  },
+  submitButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(36, 179, 79, 0.95)",
+    width: 125,
+    padding: 7,
+    marginLeft: 58,
+    borderRadius: 5,
+  },
+  submitText: {
+    color: "white",
+    fontSize: 20,
+  },
+  toggleContainer: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "#28a745",
+    borderRadius: 25,
+    width: 170,
+    height: 35,
+    alignSelf: "center",
+    marginBottom: 20,
+    overflow: "hidden",
+    position: "relative",
+  },
+  slider: {
+    position: "absolute",
+    width: "50%",
+    height: "100%",
+    backgroundColor: "green",
+    borderRadius: 25,
+  },
+  toggleSide: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleText: {
+    color: "black",
+    fontWeight: "600",
+  },
+  activeText: {
+    color: "white",
+  },
+});

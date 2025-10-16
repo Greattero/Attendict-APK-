@@ -1,15 +1,14 @@
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import HostForm from "./HostForm.jsx";
-import CheckinForm from "./CheckinForm.jsx";
-import Countdown from "./Countdown.jsx";
-import LocationCoords from "./LocationCoords.jsx";
-import IPChecker from "./IPChecker.jsx";
-import Header from "./Header.jsx";
-import FetchHostCoords from "./FetchHostCoords.jsx";
-import Distance from "./Distance.jsx"
-import CollectNames from "./CollectNames.jsx";
 import React from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import CheckinForm from "./CheckinForm.jsx";
+import CollectNames from "./CollectNames.jsx";
+import Countdown from "./Countdown.jsx";
+import Distance from "./Distance.jsx";
+import FetchHostCoords from "./FetchHostCoords.jsx";
+import Header from "./Header.jsx";
+import HostForm from "./HostForm.jsx";
+import IPChecker from "./IPChecker.jsx";
+import LocationCoords from "./LocationCoords.jsx";
 
 export default function App() {
 
@@ -24,12 +23,41 @@ export default function App() {
   const [hostProg, setHostProg] = React.useState();
   const [startClock, setStartClock] = React.useState(false);
   const [collect, setCollect] = React.useState(false);
+  const [showHome, setShowHome] = React.useState(true);
+
+
+    
+  // React.useEffect(() => {
+  //     (async () => {
+  //     const pending = JSON.parse(await AsyncStorage.getItem("pendingDeletes") || "[]");
+  //     console.log("hmmmmmmmmmm");
+  //     for (const name of pending) {
+  //         console.log("runninggggggg");
+  //         try {
+  //         await fetch("https://attendict-apk.onrender.com/api/delete-collection", {
+  //             method: "DELETE",
+  //             headers: { "Content-Type": "application/json" },
+  //             body: JSON.stringify({ collection_name: name }),
+  //         });
+  //         } catch {}
+  //     }
+  //     await AsyncStorage.removeItem("pendingDeletes");
+  //     })();
+  // }, []);
+
+
+
+
 
 
 
   return (
     <View style={styles.container}>
-     {<Header/>}
+      {showHome ?(
+     <> 
+     <Header/>
+
+
 
     {startClock ? 
      <CollectNames
@@ -38,6 +66,7 @@ export default function App() {
      /> : <CollectNames
      timeUp={collect}
      programmeName = {hostProg}
+     defaultTimeUp={setCollect}
 
      />}
 
@@ -60,6 +89,7 @@ export default function App() {
     setDistance={setCalDistance}
     />
 
+      { !startClock ?
       <TouchableOpacity
         style={styles.button1}
         onPress={() => setShowHostForm(true)}
@@ -69,9 +99,22 @@ export default function App() {
         </View>
         <Text style={styles.buttonText}>Host</Text>
 
-      </TouchableOpacity>
+      </TouchableOpacity> :       
+      
+      <TouchableOpacity
+        style={styles.button1}
+        onPress={() => (setShowHostForm(false),alert("A session is ongoing"))}
+      >
+        <View style={styles.imageContainer}>
+          <Image source={require("../assets/images/admin.png")} style={styles.image}/>
+        </View>
+        <Text style={styles.buttonText}>Host</Text>
 
-        <HostForm 
+      </TouchableOpacity>
+      }
+
+        
+       { !startClock && <HostForm 
         visible={showHostForm}
         onClose={()=>setShowHostForm(false)}
         exportDuration={setDuration}
@@ -79,7 +122,7 @@ export default function App() {
         myip={ip}
         proceedTimer={setStartClock}
         getProg={setHostProg}
-        />
+        />}
 
       <TouchableOpacity
         style={styles.button2}
@@ -105,6 +148,23 @@ export default function App() {
       {startClock ? duration && <Countdown start={duration} enableStopClock={setStartClock} sendCollectSignal={setCollect}/> : null}
   
       </Text>
+      {/* <NavigationBar
+      switchToHome={setShowHome}
+      /> */}
+      </>):
+
+    //   <>
+    //   <FamekoPassenger
+    //   userPos={location}
+    //  />
+
+
+    //   <NavigationBar
+    //   switchToHome={setShowHome}
+    //   />
+    //   </>
+    null
+    }
 
     </View>
   );
