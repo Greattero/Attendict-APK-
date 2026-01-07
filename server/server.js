@@ -235,6 +235,7 @@ app.delete("/api/delete-collection",async(req,res)=> {
     try{
         const db =  await mongoose.connection.collection(collection_name);
         await db.drop();
+        delete mongoose.models[collection_name];
         res.status(200).json({message:`Document saved successfully`});
     }
     catch(error){
@@ -256,6 +257,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
