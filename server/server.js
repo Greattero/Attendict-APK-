@@ -145,8 +145,7 @@ app.post("/api/checkin-details", async (req, res) => {
 
     // Now safely define the model
     const Student =
-      mongoose.models[programme] ||
-      mongoose.model(programme, studentSchema, programme);
+      mongoose.models[programme];
 
 
     // Check if student already exists
@@ -187,8 +186,7 @@ app.get("/api/host-location", async (req, res) => {
         }
 
         const Student =
-            mongoose.models[programme] ||
-            mongoose.model(programme, studentSchema, programme);
+            mongoose.models[programme]
 
         const host = await Student.findOne();
 
@@ -208,8 +206,7 @@ app.get("/api/student-list", async (req,res) =>{
     try{
     const { programme } = req.query;
     const Student =
-      mongoose.models[programme] ||
-      mongoose.model(programme, studentSchema, programme);
+      mongoose.models[programme];
 
     const studentList = await Student.find({},{name: 1, index_no: 1, doubtChecker: 1, checkedTime: 1, _id: 0});
     console.log(programme);
