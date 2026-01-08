@@ -150,7 +150,7 @@ app.post("/api/checkin-details", async (req, res) => {
 
 
     // Check if student already exists
-    const user = await Student.findOne({index_no});
+    const user = await Student.findOne({usernameChecker});
 
     const ipCounter = await Student.countDocuments({myip});
 
@@ -161,7 +161,7 @@ app.post("/api/checkin-details", async (req, res) => {
     // Save the new student
     const newStudent = await Student.create({
       name,
-      index_no,
+      usernameChecker,
       programme,
       level,
       myip,
