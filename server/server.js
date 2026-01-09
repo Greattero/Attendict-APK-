@@ -249,7 +249,7 @@ app.post("/api/checkin-details", async (req, res) => {
 
     // Now safely define the model
 
-    const Student = mongoose.models[programme];
+    const Student = mongoose.model("Programme", studentSchema, `${programme}`);
 
 
     // Check if student already exists
@@ -465,6 +465,7 @@ app.listen(PORT, '0.0.0.0', () => {
 
 
               
+
 
 
 
