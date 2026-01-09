@@ -208,7 +208,7 @@ app.post("/api/checkin-details", async (req, res) => {
 
   try {
 
-    const { name, index_no, programme, level, myip } = req.body;
+    const { name, index_no, programme, level, myip, distance } = req.body;
 
 
 
@@ -268,6 +268,8 @@ app.post("/api/checkin-details", async (req, res) => {
 
     }
 
+    let inspect = "0";
+    if (distance > 0.5 && distance < 1.6) inspect = "1";
 
 
     // Save the new student
@@ -284,7 +286,9 @@ app.post("/api/checkin-details", async (req, res) => {
 
       myip,
 
-      doubtChecker: ipCounter > 0 ? "1" : "0",
+      inspect,
+
+      doubtChecker: (ipCounter > 0 || inspect === "1") ? "1" : "0",
 
       checkedTime: new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}),
 
@@ -461,6 +465,7 @@ app.listen(PORT, '0.0.0.0', () => {
 
 
               
+
 
 
 
